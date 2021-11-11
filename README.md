@@ -16,4 +16,5 @@ For help getting started with Flutter, view our
 samples, guidance on mobile development, and a full API reference.
 
 ## Next Tutorial
-[링크](https://flutter.dev/docs/get-started/codelab#step-1-create-the-starter-flutter-app)
+[더 알아보기](https://flutter.dev/docs/get-started/learn-more)
+[코드랩](https://codelabs.developers.google.com/codelabs/first-flutter-app-pt2#4)
