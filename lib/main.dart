@@ -1,7 +1,21 @@
+import 'dart:developer';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
 
 void main() => runApp(ChatApp());
+
+final ThemeData kIOSTheme = ThemeData(
+  primarySwatch: Colors.orange,
+  primaryColor: Colors.grey[100],
+  primaryColorBrightness: Brightness.light,
+);
+
+final ThemeData kDefaultTheme = ThemeData(
+  colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+      .copyWith(secondary: Colors.blue),
+);
 
 class ChatMessage extends StatelessWidget {
   ChatMessage({
@@ -29,15 +43,17 @@ class ChatMessage extends StatelessWidget {
               margin: const EdgeInsets.only(right: 16.0),
               child: CircleAvatar(child: Text(_name[0])),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(_name, style: Theme.of(context).textTheme.headline4),
-                Container(
-                  margin: const EdgeInsets.only(top: 5.0),
-                  child: Text(text),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_name, style: Theme.of(context).textTheme.headline4),
+                  Container(
+                    margin: const EdgeInsets.only(top: 5.0),
+                    child: Text(text),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -53,6 +69,9 @@ class ChatApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'FriendlyChat',
+      theme: defaultTargetPlatform == TargetPlatform.iOS
+          ? kIOSTheme
+          : kDefaultTheme,
       home: ChatScreen(),
     );
   }
@@ -67,6 +86,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final List<ChatMessage> _messages = [];
   final _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  bool _isComposing = false;
 
   void _handleSubmitted(String text) {
     _textController.clear();
@@ -76,9 +96,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             duration: const Duration(milliseconds: 700), vsync: this));
     setState(() {
       _messages.insert(0, message);
+      _isComposing = false;
     });
     _focusNode.requestFocus();
     message.animationController.forward();
+  }
+
+  void _handleChanged(String text) {
+    setState(() {
+      _isComposing = text.isNotEmpty;
+    });
   }
 
   Widget _buildTextComposer() {
@@ -89,7 +116,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             Flexible(
               child: TextField(
                 controller: _textController,
-                onSubmitted: _handleSubmitted,
+                onChanged: _handleChanged,
+                onSubmitted: _isComposing ? _handleSubmitted : null,
                 decoration:
                     const InputDecoration.collapsed(hintText: 'Send a message'),
                 focusNode: _focusNode,
@@ -102,7 +130,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 margin: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: IconButton(
                     icon: const Icon(Icons.send),
-                    onPressed: () => _handleSubmitted(_textController.text)),
+                    onPressed: _isComposing
+                        ? () => _handleSubmitted(_textController.text)
+                        : null),
               ),
             )
           ],
@@ -120,7 +150,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FriendlyChat')),
+      appBar: AppBar(
+        title: const Text('FriendlyChat'),
+        elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
+      ),
       body: Column(children: [
         Flexible(
             child: ListView.builder(
